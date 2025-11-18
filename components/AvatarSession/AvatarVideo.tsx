@@ -71,9 +71,7 @@ export const AvatarVideo = forwardRef<HTMLVideoElement, AvatarVideoProps>(({ sho
       
       {/* User Video Overlay */}
       {showUserVideo && (
-        <div className={`absolute w-64 h-48 ${
-          userVideoPosition === 'bottom-right' ? 'bottom-4 right-4' : 'bottom-4 left-4'
-        } z-20`}>
+        <div className={` absolute ${userVideoPosition === "bottom-right" ? "bottom-2 right-2" : "bottom-2 left-2"} z-20 w-24 h-16 sm:w-40 sm:h-28 lg:w-64 lg:h-48`} >
           <UserVideo 
             className="border-2 border-white shadow-lg" 
             onStreamChange={setUserStream} 

@@ -171,7 +171,7 @@ function InteractiveAvatar() {
 
   return (
     <div className="w-full flex flex-col gap-4">
-      <div className="flex flex-col rounded-xl bg-zinc-900 overflow-hidden">
+      <div className="flex flex-col rounded-xl bg-zinc-900 overflow-hidden p-3 sm:p-0">
         <div className="relative w-full aspect-video overflow-hidden flex flex-col items-center justify-center">
           {sessionState !== StreamingAvatarSessionState.INACTIVE ? (
             <AvatarVideo
@@ -187,28 +187,34 @@ function InteractiveAvatar() {
         </div>
         <div className="flex flex-col gap-3 items-center justify-center p-4 border-t border-zinc-700 w-full">
           {sessionState === StreamingAvatarSessionState.CONNECTED ? (
-            <AvatarControls
-              chatMode={chatMode}
-              onChatModeChange={(newMode) => {
-                setChatMode(newMode);
-                if (newMode === "voice" || newMode === "video") {
-                  // Start voice chat when switching modes (no params)
-                  startVoiceChat();
-                }
-              }}
-            />
+            <div className="w-full flex flex-col sm:flex-row gap-3">
+                <AvatarControls
+                  chatMode={chatMode}
+                  onChatModeChange={(newMode) => {
+                    setChatMode(newMode);
+                    if (newMode === "voice" || newMode === "video") {
+                      // Start voice chat when switching modes (no params)
+                      startVoiceChat();
+                    }
+                  }}
+                />
+            </div>
           ) : sessionState === StreamingAvatarSessionState.INACTIVE ? (
-            <div className="flex flex-row gap-4">
-              <Button onClick={() => startSessionV2("text")}>Start Text Chat</Button>
-              <Button onClick={() => startSessionV2("voice")}>Start Voice Chat</Button>
-              <Button onClick={() => startSessionV2("video")}>Start Video Chat</Button>
+            <div className="flex flex-col sm:flex-row justify-center gap-3 w-full">
+                <Button onClick={() => startSessionV2("text")} className="w-full sm:w-auto">Start Text Chat</Button>
+                <Button onClick={() => startSessionV2("voice")} className="w-full sm:w-auto">Start Voice Chat</Button>
+                <Button onClick={() => startSessionV2("video")} className="w-full sm:w-auto">Start Video Chat</Button>
             </div>
           ) : (
             <LoadingIcon />
           )}
         </div>
       </div>
-      {sessionState === StreamingAvatarSessionState.CONNECTED && <MessageHistory />}
+      {sessionState === StreamingAvatarSessionState.CONNECTED && (
+        <div className="px-3 sm:px-0">
+          <MessageHistory />
+        </div>
+      )}
     </div>
   );
 }
