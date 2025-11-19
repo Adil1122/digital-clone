@@ -28,7 +28,7 @@ export const AvatarControls: React.FC<AvatarControlsProps> = ({
   return (
     <div className="flex flex-col gap-3 relative w-full items-center">
       <ToggleGroup
-        className={`bg-zinc-700 rounded-lg p-1 ${isVoiceChatLoading ? "opacity-50" : ""}`}
+        className={`bg-zinc-700 rounded-lg p-1 w-full md:w-auto flex items-center justify-between  ${isVoiceChatLoading ? "opacity-50" : ""}`}
         disabled={isVoiceChatLoading}
         type="single"
         value={chatMode}
@@ -50,19 +50,19 @@ export const AvatarControls: React.FC<AvatarControlsProps> = ({
         }}
       >
         <ToggleGroupItem
-          className="data-[state=on]:bg-zinc-800 rounded-lg p-2 text-sm w-[80px] text-center"
+          className="data-[state=on]:bg-zinc-800 rounded-lg py-2 px-7 text-sm text-center"
           value="text"
         >
           Text
         </ToggleGroupItem>
         <ToggleGroupItem
-          className="data-[state=on]:bg-zinc-800 rounded-lg p-2 text-sm w-[80px] text-center"
+          className="data-[state=on]:bg-zinc-800 rounded-lg py-2 px-7 text-sm text-center"
           value="voice"
         >
           Voice
         </ToggleGroupItem>
         <ToggleGroupItem
-          className="data-[state=on]:bg-zinc-800 rounded-lg p-2 text-sm w-[80px] text-center"
+          className="data-[state=on]:bg-zinc-800 rounded-lg py-2 px-7 text-sm text-center"
           value="video"
         >
           Video

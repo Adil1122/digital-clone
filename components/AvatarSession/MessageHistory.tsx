@@ -17,12 +17,12 @@ export const MessageHistory: React.FC = () => {
   return (
     <div
       ref={containerRef}
-      className="w-[600px] overflow-y-auto flex flex-col gap-2 px-2 py-2 text-white self-center max-h-[150px]"
+      className="w-full overflow-y-auto flex flex-col gap-2 px-2 py-2 text-white self-center max-h-[150px]"
     >
       {messages.map((message) => (
         <div
           key={message.id}
-          className={`flex flex-col gap-1 max-w-[350px] ${
+          className={`flex flex-col gap-1 w-full ${
             message.sender === MessageSender.CLIENT
               ? "self-end items-end"
               : "self-start items-start"
