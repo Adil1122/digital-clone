@@ -25,6 +25,8 @@ export interface Message {
 type StreamingAvatarContextProps = {
   avatarRef: React.MutableRefObject<StreamingAvatar | null>;
   basePath?: string;
+  sessionToken: string | null;
+  setSessionToken: (token: string | null) => void;
 
   isMuted: boolean;
   setIsMuted: (isMuted: boolean) => void;
@@ -43,12 +45,12 @@ type StreamingAvatarContextProps = {
   handleUserTalkingMessage: ({
     detail,
   }: {
-    detail: UserTalkingMessageEvent;
+    detail: any;
   }) => void;
   handleStreamingTalkingMessage: ({
     detail,
   }: {
-    detail: StreamingTalkingMessageEvent;
+    detail: any;
   }) => void;
   handleEndMessage: () => void;
 
@@ -66,29 +68,31 @@ type StreamingAvatarContextProps = {
 const StreamingAvatarContext = React.createContext<StreamingAvatarContextProps>(
   {
     avatarRef: { current: null },
+    sessionToken: null,
+    setSessionToken: () => { },
     isMuted: true,
-    setIsMuted: () => {},
+    setIsMuted: () => { },
     isVoiceChatLoading: false,
-    setIsVoiceChatLoading: () => {},
+    setIsVoiceChatLoading: () => { },
     sessionState: StreamingAvatarSessionState.INACTIVE,
-    setSessionState: () => {},
+    setSessionState: () => { },
     isVoiceChatActive: false,
-    setIsVoiceChatActive: () => {},
+    setIsVoiceChatActive: () => { },
     stream: null,
-    setStream: () => {},
+    setStream: () => { },
     messages: [],
-    clearMessages: () => {},
-    handleUserTalkingMessage: () => {},
-    handleStreamingTalkingMessage: () => {},
-    handleEndMessage: () => {},
+    clearMessages: () => { },
+    handleUserTalkingMessage: () => { },
+    handleStreamingTalkingMessage: () => { },
+    handleEndMessage: () => { },
     isListening: false,
-    setIsListening: () => {},
+    setIsListening: () => { },
     isUserTalking: false,
-    setIsUserTalking: () => {},
+    setIsUserTalking: () => { },
     isAvatarTalking: false,
-    setIsAvatarTalking: () => {},
+    setIsAvatarTalking: () => { },
     connectionQuality: ConnectionQuality.UNKNOWN,
-    setConnectionQuality: () => {},
+    setConnectionQuality: () => { },
   },
 );
 
@@ -97,12 +101,15 @@ const useStreamingAvatarSessionState = () => {
     StreamingAvatarSessionState.INACTIVE,
   );
   const [stream, setStream] = useState<MediaStream | null>(null);
+  const [sessionToken, setSessionToken] = useState<string | null>(null);
 
   return {
     sessionState,
     setSessionState,
     stream,
     setStream,
+    sessionToken,
+    setSessionToken,
   };
 };
 
@@ -128,14 +135,17 @@ const useStreamingAvatarMessageState = () => {
   const handleUserTalkingMessage = ({
     detail,
   }: {
-    detail: UserTalkingMessageEvent;
+    detail: any;
   }) => {
+    const text = typeof detail === 'string' ? detail : detail.message || detail.text;
+    if (!text) return;
+
     if (currentSenderRef.current === MessageSender.CLIENT) {
       setMessages((prev) => [
         ...prev.slice(0, -1),
         {
           ...prev[prev.length - 1],
-          content: [prev[prev.length - 1].content, detail.message].join(""),
+          content: [prev[prev.length - 1].content, text].join(""),
         },
       ]);
     } else {
@@ -145,7 +155,7 @@ const useStreamingAvatarMessageState = () => {
         {
           id: Date.now().toString(),
           sender: MessageSender.CLIENT,
-          content: detail.message,
+          content: text,
         },
       ]);
     }
@@ -154,14 +164,17 @@ const useStreamingAvatarMessageState = () => {
   const handleStreamingTalkingMessage = ({
     detail,
   }: {
-    detail: StreamingTalkingMessageEvent;
+    detail: any;
   }) => {
+    const text = typeof detail === 'string' ? detail : detail.message || detail.text;
+    if (!text) return;
+
     if (currentSenderRef.current === MessageSender.AVATAR) {
       setMessages((prev) => [
         ...prev.slice(0, -1),
         {
           ...prev[prev.length - 1],
-          content: [prev[prev.length - 1].content, detail.message].join(""),
+          content: [prev[prev.length - 1].content, text].join(""),
         },
       ]);
     } else {
@@ -171,7 +184,7 @@ const useStreamingAvatarMessageState = () => {
         {
           id: Date.now().toString(),
           sender: MessageSender.AVATAR,
-          content: detail.message,
+          content: text,
         },
       ]);
     }

@@ -18,6 +18,7 @@ export const useStreamingAvatarSession = () => {
     basePath,
     sessionState,
     setSessionState,
+    setSessionToken,
     stream,
     setStream,
     setIsListening,
@@ -77,16 +78,19 @@ export const useStreamingAvatarSession = () => {
   ]);
 
   const start = useCallback(
-    async (config: StartAvatarRequest, token?: string) => {
+    async (config: StartAvatarRequest, sessionData: any) => {
       if (sessionState !== StreamingAvatarSessionState.INACTIVE) {
         throw new Error("There is already an active session");
       }
 
+      if (!sessionData) {
+        throw new Error("Session data is required");
+      }
+
+      const { session_token, livekit_url, livekit_client_token, session_id, max_session_duration } = sessionData;
+
       if (!avatarRef.current) {
-        if (!token) {
-          throw new Error("Token is required");
-        }
-        init(token);
+        init(session_token);
       }
 
       if (!avatarRef.current) {
@@ -94,6 +98,8 @@ export const useStreamingAvatarSession = () => {
       }
 
       setSessionState(StreamingAvatarSessionState.CONNECTING);
+      setSessionToken(session_token);
+
       avatarRef.current.on(StreamingEvents.STREAM_READY, handleStream);
       avatarRef.current.on(StreamingEvents.STREAM_DISCONNECTED, stop);
       avatarRef.current.on(
@@ -127,7 +133,13 @@ export const useStreamingAvatarSession = () => {
         handleEndMessage,
       );
 
-      await avatarRef.current.createStartAvatar(config);
+      await avatarRef.current.startAvatar(config, {
+        session_id,
+        access_token: livekit_client_token,
+        url: livekit_url,
+        is_paid: true,
+        session_duration_limit: max_session_duration
+      });
 
       return avatarRef.current;
     },
@@ -136,6 +148,7 @@ export const useStreamingAvatarSession = () => {
       handleStream,
       stop,
       setSessionState,
+      setSessionToken,
       avatarRef,
       sessionState,
       setConnectionQuality,

@@ -56,14 +56,14 @@ function InteractiveAvatar() {
   // store the timeout id so we can clear it on unmount / stop
   const introTimeoutRef = useRef<number | null>(null);
 
-  async function fetchAccessToken() {
+  async function fetchSessionData() {
     try {
       const response = await fetch("/api/get-access-token", { method: "POST" });
-      const token = await response.text();
-      console.log("Access Token:", token);
-      return token;
+      const data = await response.json();
+      console.log("Session Data:", data);
+      return data;
     } catch (error) {
-      console.error("Error fetching access token:", error);
+      console.error("Error fetching session data:", error);
       throw error;
     }
   }
@@ -74,8 +74,12 @@ function InteractiveAvatar() {
       const isVoiceChat = mode === "voice" || mode === "video";
 
       try {
-        const newToken = await fetchAccessToken();
-        const avatar = initAvatar(newToken);
+        const sessionData = await fetchSessionData();
+        // The hook now handles initialization using session_token inside startAvatar
+        // but we still want to set up listeners before calling startAvatar if needed.
+        // However, the hook version I wrote sets up listeners inside 'start'.
+
+        const avatar = await startAvatar(config, sessionData);
 
         avatar.on(StreamingEvents.AVATAR_START_TALKING, (e) => {
           console.log("Avatar started talking", e);
@@ -104,8 +108,6 @@ function InteractiveAvatar() {
                 text: INTRO_MESSAGE,
                 taskType: TaskType.REPEAT,
               });
-              // Optionally mirror in text history:
-              // addMessageToHistory({ role: "avatar", content: INTRO_MESSAGE });
             } catch (err) {
               console.error("Failed to send intro message:", err);
             } finally {
@@ -119,30 +121,13 @@ function InteractiveAvatar() {
         });
         avatar.on(StreamingEvents.USER_STOP, (event) => {
           console.log(">>>>> User stopped talking:", event);
-          // If you want the avatar to interrupt the intro if user starts speaking,
-          // clear the scheduled intro here:
           if (introTimeoutRef.current) {
             window.clearTimeout(introTimeoutRef.current);
             introTimeoutRef.current = null;
           }
         });
-        avatar.on(StreamingEvents.USER_END_MESSAGE, (event) => {
-          console.log(">>>>> User end message:", event);
-        });
-        avatar.on(StreamingEvents.USER_TALKING_MESSAGE, (event) => {
-          console.log(">>>>> User talking message:", event);
-        });
-        avatar.on(StreamingEvents.AVATAR_TALKING_MESSAGE, (event) => {
-          console.log(">>>>> Avatar talking message:", event);
-        });
-        avatar.on(StreamingEvents.AVATAR_END_MESSAGE, (event) => {
-          console.log(">>>>> Avatar end message:", event);
-        });
-
-        await startAvatar(config);
 
         if (isVoiceChat) {
-          // SDK signature is startVoiceChat(force?: boolean)
           await startVoiceChat();
         }
       } catch (error) {
@@ -188,22 +173,22 @@ function InteractiveAvatar() {
         <div className="flex flex-col gap-3 items-center justify-center p-4 border-t border-zinc-700 w-full">
           {sessionState === StreamingAvatarSessionState.CONNECTED ? (
             <div className="w-full flex flex-col sm:flex-row gap-3">
-                <AvatarControls
-                  chatMode={chatMode}
-                  onChatModeChange={(newMode) => {
-                    setChatMode(newMode);
-                    if (newMode === "voice" || newMode === "video") {
-                      // Start voice chat when switching modes (no params)
-                      startVoiceChat();
-                    }
-                  }}
-                />
+              <AvatarControls
+                chatMode={chatMode}
+                onChatModeChange={(newMode) => {
+                  setChatMode(newMode);
+                  if (newMode === "voice" || newMode === "video") {
+                    // Start voice chat when switching modes (no params)
+                    startVoiceChat();
+                  }
+                }}
+              />
             </div>
           ) : sessionState === StreamingAvatarSessionState.INACTIVE ? (
             <div className="flex flex-col sm:flex-row justify-center gap-3 w-full">
-                <Button onClick={() => startSessionV2("text")} className="w-full sm:w-auto">Start Text Chat</Button>
-                <Button onClick={() => startSessionV2("voice")} className="w-full sm:w-auto">Start Voice Chat</Button>
-                <Button onClick={() => startSessionV2("video")} className="w-full sm:w-auto">Start Video Chat</Button>
+              <Button onClick={() => startSessionV2("text")} className="w-full sm:w-auto">Start Text Chat</Button>
+              <Button onClick={() => startSessionV2("voice")} className="w-full sm:w-auto">Start Voice Chat</Button>
+              <Button onClick={() => startSessionV2("video")} className="w-full sm:w-auto">Start Video Chat</Button>
             </div>
           ) : (
             <LoadingIcon />
